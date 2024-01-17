@@ -1,13 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
 	"main/internal/device"
 )
+
+type Configuration struct {
+	InitialSetupCompleted bool `json:"initialSetupCompleted"`
+}
 
 func main() {
 	// initialize device and instantiate depending on environment
@@ -20,6 +26,15 @@ func main() {
 		fmt.Printf("Dev environment detected\n\n")
 		d = &device.DevDevice{}
 	}
+
+	config := loadConfiguration()
+
+	if !config.InitialSetupCompleted {
+		fmt.Println("Initial setup has _not_ been completed")
+	} else {
+		fmt.Println("Initial setup has been completed")
+	}
+
 }
 
 func isProdEnvironment() bool {
@@ -38,4 +53,37 @@ func isProdEnvironment() bool {
 	}
 
 	return false
+}
+
+func loadConfiguration() Configuration {
+	// detect cwd
+	p, err := os.Getwd()
+	if err != nil {
+		log.Fatal("Unable to determine working directory")
+	}
+	// open / create config file
+	configFileContents, err := os.ReadFile(p + "/cmd/conf.json")
+	// if unable to open the configuration, try to create the file
+	if err != nil {
+		fmt.Println(err)
+
+		f, e := os.Create(p + "/cmd/conf.json")
+		if e != nil {
+			log.Fatal("Could not create configuration file")
+		}
+		// after creating the file, close it and return an empty configuration struct
+		f.Close()
+
+		return Configuration{}
+	}
+
+	// parse JSON
+	configuration := Configuration{}
+	unmarshalErr := json.Unmarshal(configFileContents, &configuration)
+
+	if unmarshalErr != nil {
+		log.Fatal("Failure parsing configuration file.")
+	}
+
+	return configuration
 }
