@@ -2,6 +2,8 @@ package device
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 )
 
 type D interface {
