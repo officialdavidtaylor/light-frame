@@ -92,6 +92,17 @@ func (d *Device) DisableCaptivePortal() bool {
 
 // Test WiFi configuration
 func (d *Device) TestWifiConfiguration(ssid string, password string) bool {
+	fmt.Println("TestWifiConfiguration called (via Device interface)")
+	return true
+}
+
+// Test WiFi configuration
+func (d *DevDevice) TestWifiConfiguration(ssid string, password string) bool {
 	fmt.Println("TestWifiConfiguration called")
+
+	if ssid == "testSsid" && password == "testPassword" {
+		return true
+	}
+
 	return false
 }
