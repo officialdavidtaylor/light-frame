@@ -44,13 +44,13 @@ func (d *Device) DisplayWifiSetupInstructionImage() bool {
 // Activate the Raspberry Pi's Access Point mode
 func (d *Device) ActivateAccessPointMode() bool {
 	fmt.Println("ActivateAccessPointMode called")
-	return false
+	return true
 }
 
 // Deactivate the Raspberry Pi's Access Point mode
 func (d *Device) DeactivateAccessPointMode() bool {
 	fmt.Println("DeactivateAccessPointMode called")
-	return false
+	return true
 }
 
 // Start hosting simple web server

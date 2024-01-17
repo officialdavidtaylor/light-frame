@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"main/internal/device"
+	"main/internal/stateMachines"
 )
 
 type Configuration struct {
@@ -31,10 +33,21 @@ func main() {
 
 	if !config.InitialSetupCompleted {
 		fmt.Println("Initial setup has _not_ been completed")
-	} else {
-		fmt.Println("Initial setup has been completed")
-	}
 
+		// initialize state machine
+		fmt.Printf("Initializing state machine...\n\n")
+
+		fsm := stateMachines.InitWifiOnboardingWizard(d)
+
+		err := fsm.Event(context.Background(), "next")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("state at the end of the wifi config wizard: " + fsm.Current())
+	}
+		fmt.Println("Initial setup has been completed")
 }
 
 func isProdEnvironment() bool {
