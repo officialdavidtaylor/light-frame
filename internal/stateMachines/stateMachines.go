@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	
+
 	"main/internal/device"
 
 	"github.com/looplab/fsm"

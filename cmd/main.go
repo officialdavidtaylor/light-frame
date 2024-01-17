@@ -47,7 +47,7 @@ func main() {
 
 		fmt.Println("state at the end of the wifi config wizard: " + fsm.Current())
 	}
-		fmt.Println("Initial setup has been completed")
+	fmt.Println("Initial setup has been completed")
 }
 
 func isProdEnvironment() bool {
