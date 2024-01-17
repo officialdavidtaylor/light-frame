@@ -1,8 +1,11 @@
 package device
 
 import (
+	"context"
 	"fmt"
+	"html"
 	"log"
+	"net/http"
 	"os/exec"
 )
 
@@ -19,6 +22,9 @@ type D interface {
 }
 
 type Device struct {
+	slideshowTimer int
+
+	shutdownServer func() error
 }
 
 /* Production Device with member functions that interface with a real device */
@@ -79,7 +85,52 @@ func (d *Device) DeactivateAccessPointMode() bool {
 
 // Start hosting simple web server
 func (d *Device) InitializeWebServer(credentialChannel chan map[string]string) bool {
-	fmt.Println("InitializeWebServer called")
+	fmt.Println("InitializeWebServer called (via Device interface)")
+	return true
+}
+
+// Start hosting simple web server
+func (d *DevDevice) InitializeWebServer(credentialChannel chan map[string]string) bool {
+	fmt.Println("InitializeWebServer called (via DevDevice interface)")
+
+	server := &http.Server{
+		Addr: ":8080",
+		Handler: http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				queryParams := r.URL.Query()
+
+				ssid, ssidOk := queryParams["ssid"]
+				if !ssidOk {
+					fmt.Println("missing ssid query param")
+				}
+
+				password, passwordOk := queryParams["password"]
+				if !passwordOk {
+					fmt.Println("missing password query param")
+				}
+
+				if ssidOk && passwordOk {
+					fmt.Fprintf(w, "Hello, %q\nssid: %v, password: %v", html.EscapeString(r.URL.Path), ssid[0], password[0])
+
+					credentials := make(map[string]string)
+					credentials["ssid"] = ssid[0]
+					credentials["password"] = password[0]
+
+					credentialChannel <- credentials
+				}
+
+			},
+		),
+	}
+
+	fmt.Println("starting server")
+	go server.ListenAndServe()
+
+	// create server shutdown closure that can be called later
+	d.shutdownServer = func() error {
+		return server.Shutdown(context.Background())
+	}
+
 	return true
 }
 
@@ -87,6 +138,12 @@ func (d *Device) InitializeWebServer(credentialChannel chan map[string]string) b
 func (d *Device) KillWebServer() error {
 	fmt.Println("KillWebServer called")
 	return nil
+}
+
+// Kill simple web server
+func (d *DevDevice) KillWebServer() error {
+	fmt.Println("KillWebServer called")
+	return d.shutdownServer()
 }
 
 // Enable captive portal to route all AP requests to our local server
