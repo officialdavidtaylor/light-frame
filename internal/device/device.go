@@ -32,7 +32,18 @@ type DevDevice struct {
 }
 
 // Use the FrameBufferImage(viewer) to run the slideshow on the attached screen
-func (d *Device) StartSlideshow() bool {
+func (d *ProdDevice) StartSlideshow() bool {
+	// launch the FrameBuffer Image Viewer from a virtual terminal to screen 1, randomize order, auto-zoom, set display interval to 5sec, hide the image metadata
+	cmd := exec.Command("fbi", "-d", "/dev/fb0", "-T", "1", "-a", "-u", "-t", fmt.Sprint(d.slideshowTimer), "--blend", "250", "--noverbose", "~/photos/*.[^mM4]*\"")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return true
+}
+
+// Use the FrameBufferImage(viewer) to run the slideshow on the attached screen
+func (d *DevDevice) StartSlideshow() bool {
 	fmt.Println("StartSlideshow called")
 	return true
 }
