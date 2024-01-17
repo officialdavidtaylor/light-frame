@@ -5,13 +5,20 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
+	"main/internal/device"
 )
 
 func main() {
+	// initialize device and instantiate depending on environment
+	var d device.D
+
 	if isProdEnvironment() {
 		fmt.Printf("Prod environment detected\n\n")
+		d = &device.ProdDevice{}
 	} else {
 		fmt.Printf("Dev environment detected\n\n")
+		d = &device.DevDevice{}
 	}
 }
 
