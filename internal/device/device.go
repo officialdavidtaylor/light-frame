@@ -2,6 +2,8 @@ package device
 
 import (
 	"fmt"
+	"log"
+	"os/exec"
 )
 
 type D interface {
@@ -36,8 +38,19 @@ func (d *Device) StartSlideshow() bool {
 }
 
 // Display Wifi setup instructions with FrameBufferImage(viewer)
-func (d *Device) DisplayWifiSetupInstructionImage() bool {
+func (d *DevDevice) DisplayWifiSetupInstructionImage() bool {
 	fmt.Println("DisplayWifiSetupInstructionImage called")
+	return true
+}
+
+// Display Wifi setup instructions with FrameBufferImage(viewer)
+func (d *ProdDevice) DisplayWifiSetupInstructionImage() bool {
+	// launch the FrameBuffer Image Viewer from a virtual terminal to screen 1, hide the image metadata
+	cmd := exec.Command("fbi", "-d", "/dev/fb0", "-T", "1", "-a", "--noverbose", "./assets/WifiInstructions.png")
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return true
 }
 
