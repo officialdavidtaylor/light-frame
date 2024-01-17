@@ -1,13 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
 	"main/internal/device"
 )
+
+type Configuration struct {
+	initialSetupCompleted bool
+}
 
 func main() {
 	// initialize device and instantiate depending on environment
@@ -20,6 +26,15 @@ func main() {
 		fmt.Printf("Dev environment detected\n\n")
 		d = &device.DevDevice{}
 	}
+
+	config := loadConfiguration()
+
+	if !config.initialSetupCompleted {
+		fmt.Println("Initial setup has _not_ been completed")
+	} else {
+		fmt.Println("Initial setup has been completed")
+	}
+
 }
 
 func isProdEnvironment() bool {
@@ -38,4 +53,30 @@ func isProdEnvironment() bool {
 	}
 
 	return false
+}
+
+func loadConfiguration() Configuration {
+	// open / create config file
+	file, err := os.Open("conf.json")
+	// if unable to open the configuration, try to create the file
+	if err != nil {
+		f, e := os.Create("conf.json")
+		if e != nil {
+			log.Fatal("could not create conf file")
+		}
+		fmt.Fprintf(f, "{}")
+		// hoist the newly created file into the parent scope
+		file = f
+	}
+	defer file.Close()
+	// parse JSON
+	decoder := json.NewDecoder(file)
+	configuration := Configuration{}
+	decodeErr := decoder.Decode(&configuration)
+
+	if decodeErr != nil {
+		fmt.Println("error:", decodeErr)
+	}
+
+	return configuration
 }
