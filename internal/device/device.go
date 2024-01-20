@@ -6,6 +6,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 )
 
@@ -50,9 +51,21 @@ func NewDevDevice(slideshowInterval int) *DevDevice {
 
 // Use the FrameBufferImage(viewer) to run the slideshow on the attached screen
 func (d *ProdDevice) StartSlideshow() bool {
+	fmt.Println("StartSlideshow called (via ProdDevice interface)")
+
+	wd, wdErr := os.Getwd()
+	if wdErr != nil {
+		log.Fatal(wdErr)
+	}
+
 	// launch the FrameBuffer Image Viewer from a virtual terminal to screen 1, randomize order, auto-zoom, set display interval to 5sec, hide the image metadata
-	cmd := exec.Command("fbi", "-d", "/dev/fb0", "-T", "1", "-a", "-u", "-t", fmt.Sprint(d.slideshowTimer), "--blend", "250", "--noverbose", "~/photos/*.[^mM4]*\"")
-	err := cmd.Run()
+	commandString := "sudo fbi -d /dev/fb0 -T 1 -a -u -t " + fmt.Sprint(d.SlideshowInterval) + " --blend 250 --noverbose ~/photos/*.[^mM4]*"
+
+	fmt.Printf("cwd: %v\n", wd)
+	cmd := exec.Command("bash", "-c", commandString)
+	fmt.Printf("command: %+v\n", cmd)
+	output, err := cmd.Output()
+	fmt.Printf(string(output[:]))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +74,7 @@ func (d *ProdDevice) StartSlideshow() bool {
 
 // Use the FrameBufferImage(viewer) to run the slideshow on the attached screen
 func (d *DevDevice) StartSlideshow() bool {
-	fmt.Println("StartSlideshow called")
+	fmt.Println("StartSlideshow called (via DevDevice interface)")
 	return true
 }
 
