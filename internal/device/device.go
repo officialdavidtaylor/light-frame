@@ -85,8 +85,9 @@ func (d *DevDevice) DisplayWifiSetupInstructionImage() bool {
 
 // Display Wifi setup instructions with FrameBufferImage(viewer)
 func (d *ProdDevice) DisplayWifiSetupInstructionImage() bool {
+	commandString := "sudo fbi -d /dev/fb0 -T 1 -a --noverbose ~/assets/WiFi\\ Setup\\ Instructions.png"
 	// launch the FrameBuffer Image Viewer from a virtual terminal to screen 1, hide the image metadata
-	cmd := exec.Command("fbi", "-d", "/dev/fb0", "-T", "1", "-a", "--noverbose", "./assets/WifiInstructions.png")
+	cmd := exec.Command("bash", "-c", commandString)
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
