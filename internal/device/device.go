@@ -22,9 +22,7 @@ type D interface {
 }
 
 type Device struct {
-	slideshowTimer int
-
-	shutdownServer func() error
+	SlideshowInterval int
 }
 
 /* Production Device with member functions that interface with a real device */
@@ -32,9 +30,21 @@ type ProdDevice struct {
 	Device
 }
 
+func NewProdDevice(slideshowInterval int) *ProdDevice {
+	prodDevice := ProdDevice{}
+	prodDevice.SlideshowInterval = slideshowInterval
+	return &prodDevice
+}
+
 /* Development variant of Device to be used for testing and validation */
 type DevDevice struct {
 	Device
+}
+
+func NewDevDevice(slideshowInterval int) *DevDevice {
+	devDevice := DevDevice{}
+	devDevice.SlideshowInterval = slideshowInterval
+	return &devDevice
 }
 
 // Use the FrameBufferImage(viewer) to run the slideshow on the attached screen

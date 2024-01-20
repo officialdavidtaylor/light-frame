@@ -23,10 +23,10 @@ func main() {
 
 	if isProdEnvironment() {
 		fmt.Printf("Prod environment detected\n\n")
-		d = &device.ProdDevice{}
+		d = device.NewProdDevice(5)
 	} else {
 		fmt.Printf("Dev environment detected\n\n")
-		d = &device.DevDevice{}
+		d = device.NewDevDevice(5)
 	}
 
 	config := loadConfiguration()
