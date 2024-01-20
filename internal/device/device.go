@@ -204,6 +204,7 @@ func formSubmissionHandler(credentialChannel chan map[string]string) func(w http
 		}
 
 		w.WriteHeader(http.StatusTeapot)
-		fmt.Fprintf(w, "Missing SSID or Password")
+		w.Header().Set("Content-Type", "application/text")
+		w.Write([]byte("Missing SSID or Password"))
 	}
 }
