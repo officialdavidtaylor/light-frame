@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"main/internal/device"
+	"main/internal/stateMachines"
 	"os"
 	"os/exec"
 	"strings"
-
-	"main/internal/device"
-	"main/internal/stateMachines"
 )
 
 type Configuration struct {
