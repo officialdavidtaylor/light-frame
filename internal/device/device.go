@@ -3,7 +3,6 @@ package device
 import (
 	"context"
 	"fmt"
-	"html"
 	"log"
 	"net/http"
 	"os"
