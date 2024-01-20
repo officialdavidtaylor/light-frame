@@ -122,6 +122,8 @@ func (d *Device) InitializeWebServer(credentialChannel chan map[string]string) b
 
 	sm := http.NewServeMux()
 
+	sm.Handle("/", http.FileServer(http.Dir("./frontend/static")))
+
 	sm.HandleFunc("/wifi", formSubmissionHandler(credentialChannel))
 
 	server := &http.Server{
