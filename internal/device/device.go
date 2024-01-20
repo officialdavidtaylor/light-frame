@@ -23,6 +23,7 @@ type D interface {
 
 type Device struct {
 	SlideshowInterval int
+	shutdownServer    func() error
 }
 
 /* Production Device with member functions that interface with a real device */
@@ -100,35 +101,18 @@ func (d *Device) InitializeWebServer(credentialChannel chan map[string]string) b
 }
 
 // Start hosting simple web server
-func (d *DevDevice) InitializeWebServer(credentialChannel chan map[string]string) bool {
-	fmt.Println("InitializeWebServer called (via DevDevice interface)")
+func (d *Device) InitializeWebServer(credentialChannel chan map[string]string) bool {
+	fmt.Println("InitializeWebServer called (via Device interface)")
+
+	sm := http.NewServeMux()
+
+	sm.HandleFunc("/wifi", formSubmissionHandler(credentialChannel))
 
 	server := &http.Server{
 		Addr: ":8080",
 		Handler: http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
-				queryParams := r.URL.Query()
-
-				ssid, ssidOk := queryParams["ssid"]
-				if !ssidOk {
-					fmt.Println("missing ssid query param")
-				}
-
-				password, passwordOk := queryParams["password"]
-				if !passwordOk {
-					fmt.Println("missing password query param")
-				}
-
-				if ssidOk && passwordOk {
-					fmt.Fprintf(w, "Hello, %q\nssid: %v, password: %v", html.EscapeString(r.URL.Path), ssid[0], password[0])
-
-					credentials := make(map[string]string)
-					credentials["ssid"] = ssid[0]
-					credentials["password"] = password[0]
-
-					credentialChannel <- credentials
-				}
-
+				sm.ServeHTTP(w, r)
 			},
 		),
 	}
@@ -146,13 +130,7 @@ func (d *DevDevice) InitializeWebServer(credentialChannel chan map[string]string
 
 // Kill simple web server
 func (d *Device) KillWebServer() error {
-	fmt.Println("KillWebServer called")
-	return nil
-}
-
-// Kill simple web server
-func (d *DevDevice) KillWebServer() error {
-	fmt.Println("KillWebServer called")
+	fmt.Println("KillWebServer called (via Device interface)")
 	return d.shutdownServer()
 }
 
@@ -183,4 +161,36 @@ func (d *DevDevice) TestWifiConfiguration(ssid string, password string) bool {
 	}
 
 	return false
+}
+
+func formSubmissionHandler(credentialChannel chan map[string]string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		queryParams := r.URL.Query()
+
+		ssid, ssidOk := queryParams["ssid"]
+		if !ssidOk {
+			fmt.Println("missing ssid query param")
+		}
+
+		password, passwordOk := queryParams["password"]
+		if !passwordOk {
+			fmt.Println("missing password query param")
+		}
+
+		if ssidOk && passwordOk {
+			fmt.Fprintf(w, "Credentials received:\nssid: %v, password: %v", ssid[0], password[0])
+
+			credentials := make(map[string]string)
+			credentials["ssid"] = ssid[0]
+			credentials["password"] = password[0]
+
+			// push the credentials we received into the credential channel for consumption elsewhere in the app
+			credentialChannel <- credentials
+			w.WriteHeader(http.StatusProcessing)
+			return
+		}
+
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprintf(w, "Missing SSID or Password")
+	}
 }
