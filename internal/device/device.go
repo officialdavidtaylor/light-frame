@@ -2,11 +2,14 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
+	"time"
 )
 
 type D interface {
@@ -160,9 +163,44 @@ func (d *Device) DisableCaptivePortal() bool {
 }
 
 // Test WiFi configuration
-func (d *Device) TestWifiConfiguration(ssid string, password string) bool {
-	fmt.Println("TestWifiConfiguration called (via Device interface)")
-	return true
+func (d *ProdDevice) TestWifiConfiguration(ssid string, password string) bool {
+	fmt.Println("TestWifiConfiguration called (via ProdDevice interface)")
+	addNetworkInfoCmdString := "sudo raspi-config nonint do_wifi_ssid_passphrase \"" + ssid + "\" \"" + password + "\""
+
+	addNetworkInfoCmd := exec.Command("bash", "-c", addNetworkInfoCmdString)
+	_, addNetworkErr := addNetworkInfoCmd.Output()
+	if addNetworkErr != nil {
+		fmt.Println("Error adding network info to wpa_supplicant")
+		log.Fatal(addNetworkErr)
+	}
+
+	restartWpaSupplicantCmdString := "wpa_cli reconfigure"
+
+	restartWpaSupplicantCmd := exec.Command("bash", "-c", restartWpaSupplicantCmdString)
+	_, restartWpaSupplicant := restartWpaSupplicantCmd.Output()
+	if restartWpaSupplicant != nil {
+		fmt.Println("Error restarting wpa_supplicant")
+		log.Fatal(restartWpaSupplicant)
+	}
+
+	// poll status of the wifi connection for 10 seconds
+	for i := 0; i < 10; i++ {
+		// check network status
+		wifiStatus, wifiStatusErr := getWpaCliStatus()
+
+		if wifiStatusErr != nil {
+			log.Fatal(wifiStatusErr)
+		}
+
+		if wifiStatus == "COMPLETED" {
+			return true
+		}
+
+		time.Sleep(time.Second)
+		fmt.Println("status: " + wifiStatus)
+	}
+
+	return false
 }
 
 // Test WiFi configuration
@@ -174,6 +212,29 @@ func (d *DevDevice) TestWifiConfiguration(ssid string, password string) bool {
 	}
 
 	return false
+}
+
+func getWpaCliStatus() (string, error) {
+	// check network status
+	checkWifiStatus := exec.Command("wpa_cli", "status")
+	wifiStatusStdout, wifiStatusErr := checkWifiStatus.CombinedOutput()
+	if wifiStatusErr != nil {
+		return "", errors.New("Error checking wpa_cli status")
+	}
+
+	// Extract the wpa_state (status)
+	regExStatus := regexp.MustCompile(`wpa_state=(.+)\n`)
+	// possible states (may not be exhaustive): "ASSOCIATING", "SCANNING", "COMPLETED", "DISCONNECTED"
+	m := regExStatus.FindStringSubmatch(string(wifiStatusStdout[:]))
+
+	if len(m) == 0 {
+		return "", errors.New("wpa_state not found in wpa_cli status")
+	}
+
+	// the first match is stored at index 0, the first actual substring is stored at index 1
+	wifiStatus := m[1]
+
+	return wifiStatus, nil
 }
 
 func formSubmissionHandler(credentialChannel chan map[string]string) func(w http.ResponseWriter, r *http.Request) {
