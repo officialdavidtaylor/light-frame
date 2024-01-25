@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"os/exec"
 )
 
 type C interface {
 	Read()
+	Write()
 }
 
 type Config struct {
@@ -40,4 +42,31 @@ func (c *Config) Read() error {
 	}
 
 	return nil
+}
+
+// Marshal the current Config struct and save the file to the disk
+func (c *Config) Write() error {
+	co, coErr := json.Marshal(c)
+	if coErr != nil {
+		return errors.New("Failure marshaling new configuration struct into JSON byte[]")
+	}
+
+	wd, wdErr := os.Getwd()
+	if wdErr != nil {
+		return errors.New("Failure to determine working directory")
+	}
+
+	cfErr := os.WriteFile(wd+"/cmd/conf.json", co, 0666)
+	if cfErr != nil {
+		return errors.New("Could not write to config file.")
+	}
+
+	return nil
+}
+
+// Use the linux "clear" command to clear the terminal
+func ClearScreen() error {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }
