@@ -19,7 +19,7 @@ func (d *Device) TestWifiConfiguration(ssid string, password string) bool {
 	return false
 }
 
-// Use
+// Uses system commands to test whether a Wifi SSID and Password result in a successful connection
 func (d *ProdDevice) TestWifiConfiguration(ssid string, password string) bool {
 
 	// duplicate wpa_supplicant file so we have a backup
