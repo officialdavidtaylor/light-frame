@@ -29,7 +29,7 @@ func (c *Config) Read() error {
 		return errors.New("Unable to determine working directory")
 	}
 
-	configFileContents, err := os.ReadFile(p + "/cmd/conf.json")
+	configFileContents, err := os.ReadFile(p + "/app/conf.json")
 	// if unable to open the configuration, create the file
 	if err != nil {
 		return c.Write()
@@ -56,7 +56,7 @@ func (c *Config) Write() error {
 		return errors.New("Failure to determine working directory")
 	}
 
-	cfErr := os.WriteFile(wd+"/cmd/conf.json", co, 0666)
+	cfErr := os.WriteFile(wd+"/app/conf.json", co, 0666)
 	if cfErr != nil {
 		return errors.New("Could not write to config file.")
 	}
