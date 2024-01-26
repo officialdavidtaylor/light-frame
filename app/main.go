@@ -31,7 +31,12 @@ func main() {
 	}
 
 	for !config.InitialSetupCompleted {
-		err := d.Initialize()
+		ssid, psk, err := d.GetSsidPskFromUser()
+		if err != nil {
+			continue
+		}
+
+		err = d.ConnectToWifi(ssid, psk)
 		if err != nil {
 			continue
 		}

@@ -8,9 +8,9 @@ import (
 )
 
 type D interface {
-	Initialize() error
+	GetSsidPskFromUser() (string, string, error)
 	StartSlideshow() error
-	TestWifiConfiguration(ssid string, password string) bool
+	ConnectToWifi(ssid string, password string) error
 }
 
 type Device struct {

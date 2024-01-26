@@ -1,6 +1,7 @@
 package device
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,23 +10,23 @@ import (
 )
 
 // Function for dev device / testing
-func (d *Device) TestWifiConfiguration(ssid string, password string) bool {
-	fmt.Println("TestWifiConfiguration called (via Device interface)")
+func (d *Device) ConnectToWifi(ssid string, password string) error {
+	fmt.Println("ConnectToWifi called (via Device interface)")
 
 	if ssid == "testSsid" && password == "testPassword" {
-		return true
+		return nil
 	}
 
-	return false
+	return errors.New("Unable to connect to wifi with the SSID and Password provided")
 }
 
 // Uses system commands to test whether a Wifi SSID and Password result in a successful connection
-func (d *ProdDevice) TestWifiConfiguration(ssid string, password string) bool {
+func (d *ProdDevice) ConnectToWifi(ssid string, password string) error {
 
 	// duplicate wpa_supplicant file so we have a backup
 	err := backupNetworkConfigFile()
 	if err != nil {
-		log.Fatal("Error backing up network config file.", err)
+		return errors.New("Error backing up network config file.")
 	}
 	fmt.Println("wpa_supplicant successfully backed up")
 
@@ -58,7 +59,7 @@ func (d *ProdDevice) TestWifiConfiguration(ssid string, password string) bool {
 
 		if wifiStatus == "COMPLETED" {
 			// early return, our work here is done
-			return true
+			return nil
 		}
 
 		time.Sleep(time.Second)
@@ -74,5 +75,5 @@ func (d *ProdDevice) TestWifiConfiguration(ssid string, password string) bool {
 
 	fmt.Println("wpa_supplicant has been restored")
 
-	return false
+	return errors.New("Unable to connect to wifi with the SSID and Password provided")
 }

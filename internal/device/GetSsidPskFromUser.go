@@ -2,13 +2,12 @@ package device
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 )
 
-func (d *Device) Initialize() error {
+func (d *Device) GetSsidPskFromUser() (string, string, error) {
 	fmt.Println("Enter wifi ssid (then press enter):")
 
 	// collect ssid and password from stdio
@@ -16,24 +15,18 @@ func (d *Device) Initialize() error {
 
 	ssidInput, err := reader.ReadString('\n')
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	fmt.Println("\nEnter wifi password (then press enter):")
 	pskInput, err := reader.ReadString('\n')
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
 	// trim newline characters from user input
 	ssidInput = strings.TrimSuffix(ssidInput, "\n")
 	pskInput = strings.TrimSuffix(pskInput, "\n")
 
-	success := d.TestWifiConfiguration(ssidInput, pskInput)
-	if !success {
-		return errors.New("Unable to connect to wifi with the provided credentials")
-	}
-
-	fmt.Println("Connection successful!")
-	return nil
+	return ssidInput, pskInput, nil
 }
